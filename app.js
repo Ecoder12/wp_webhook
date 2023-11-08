@@ -95,7 +95,7 @@ app.post('/api/wp/webhookdata', async (req, res) => {
 
     const result = await request.query(query);
 
-    res.status(200).json({ message: 'Payload inserted successfully' });
+    res.status(200).json({ status: 200 ,message: 'Payload inserted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while inserting the payload' });
