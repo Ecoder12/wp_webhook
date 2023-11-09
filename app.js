@@ -27,7 +27,14 @@ app.post('/api/wp/webhookdata', async (req, res) => {
 
     const request = new sql.Request();
 
-    const query = `
+    // Check if the record exists in Rajasthan_AC_Data
+    const checkQuery = 'SELECT COUNT(*) AS count FROM Rajasthan_AC_Data WHERE MOBILE_NO = @mobileNo';
+    const checkResult = await request.input('mobileNo', sql.VarChar, payload.receiver).query(checkQuery);
+
+    const recordExists = checkResult.recordset[0].count > 0;
+
+    if (recordExists) {
+      const query = `
       INSERT INTO [dbo].[WP_Response]
       ([event_id]
       ,[sender_id]
@@ -60,42 +67,114 @@ app.post('/api/wp/webhookdata', async (req, res) => {
       ,[AGE]
       ,[DOB])
       SELECT
-        '${payload.id}',
-        '${payload.sender_id}',
-        '${payload.receiver}',
-        '${payload.display_name}',
-        '${payload.type}',
-        '${payload.text.body}',
-        '${payload.dt}',
-        '${payload.date}',
-        '${payload.created}',
-        '${payload.eventtype}',
-        '${payload.whts_ref_id}',
-        '${payload.from}',
-        '${payload.wabaNumber}',
-        '${payload.timestamp}',
-        '${payload.context.id}',
-        t.[State],
-        t.[AC_NO],
-        t.[PART_NO],
-        t.[SECTION_NO],
-        t.[SLNOINPART],
-        t.[C_HOUSE_NO],
-        t.[FM_NAME_EN],
-        t.[LASTNAME_EN],
-        t.[RLN_TYPE],
-        t.[RLN_FM_NM_EN],
-        t.[RLN_L_NM_EN],
-        t.[EPIC_NO],
-        t.[GENDER],
-        t.[AGE],
-        t.[DOB]
+        @eventId,
+        @senderId,
+        @receiver,
+        @displayName,
+        @type,
+        @textBody,
+        @dt,
+        @date,
+        @created,
+        @eventType,
+        @whtsRefId,
+        @from,
+        @wabaNumber,
+        @timestamp,
+        @contextId,
+        COALESCE(t.[State], ''),
+        COALESCE(t.[AC_NO], ''),
+        COALESCE(t.[PART_NO], ''),
+        COALESCE(t.[SECTION_NO], ''),
+        COALESCE(t.[SLNOINPART], ''),
+        COALESCE(t.[C_HOUSE_NO], ''),
+        COALESCE(t.[FM_NAME_EN], ''),
+        COALESCE(t.[LASTNAME_EN], ''),
+        COALESCE(t.[RLN_TYPE], ''),
+        COALESCE(t.[RLN_FM_NM_EN], ''),
+        COALESCE(t.[RLN_L_NM_EN], ''),
+        COALESCE(t.[EPIC_NO], ''),
+        COALESCE(t.[GENDER], ''),
+        COALESCE(t.[AGE], ''),
+        COALESCE(t.[DOB], '')
       FROM Rajasthan_AC_Data t
-      WHERE t.MOBILE_NO = '${payload.receiver}'`;
+      WHERE t.MOBILE_NO = @receiver`;
 
-    const result = await request.query(query);
+      const result = await request
+        .input('eventId', sql.VarChar, payload.id)
+        .input('senderId', sql.VarChar, payload.sender_id)
+        .input('receiver', sql.VarChar, payload.receiver)
+        .input('displayName', sql.VarChar, payload.display_name)
+        .input('type', sql.VarChar, payload.type)
+        .input('textBody', sql.VarChar, payload.text.body)
+        .input('dt', sql.VarChar, payload.dt)
+        .input('date', sql.VarChar, payload.date)
+        .input('created', sql.VarChar, payload.created)
+        .input('eventType', sql.VarChar, payload.eventtype)
+        .input('whtsRefId', sql.VarChar, payload.whts_ref_id)
+        .input('from', sql.VarChar, payload.from)
+        .input('wabaNumber', sql.VarChar, payload.wabaNumber)
+        .input('timestamp', sql.VarChar, payload.timestamp)
+        .input('contextId', sql.VarChar, payload.context.id)
+        .query(query);
 
-    res.status(200).json({ status: 200 ,message: 'Payload inserted successfully' });
+      res.status(200).json({ status: 200, message: 'Payload inserted successfully' });
+    } else {
+      // Execute another query or handle the case as needed
+      const anotherQuery = `
+      INSERT INTO [dbo].[WP_Response]
+      ([event_id]
+      ,[sender_id]
+      ,[receiver]
+      ,[display_name]
+      ,[type]
+      ,[text_body]
+      ,[dt]
+      ,[date]
+      ,[created]
+      ,[eventtype]
+      ,[whts_ref_id]
+      ,[from_number]
+      ,[waba_number]
+      ,[timestamp]
+      ,[context_id])
+      VALUES
+        (@eventId,
+        @senderId,
+        @receiver,
+        @displayName,
+        @type,
+        @textBody,
+        @dt,
+        @date,
+        @created,
+        @eventType,
+        @whtsRefId,
+        @from,
+        @wabaNumber,
+        @timestamp,
+        @contextId)`;
+
+      const anotherResult = await request
+        .input('eventId', sql.VarChar, payload.id)
+        .input('senderId', sql.VarChar, payload.sender_id)
+        .input('receiver', sql.VarChar, payload.receiver)
+        .input('displayName', sql.VarChar, payload.display_name)
+        .input('type', sql.VarChar, payload.type)
+        .input('textBody', sql.VarChar, payload.text.body)
+        .input('dt', sql.VarChar, payload.dt)
+        .input('date', sql.VarChar, payload.date)
+        .input('created', sql.VarChar, payload.created)
+        .input('eventType', sql.VarChar, payload.eventtype)
+        .input('whtsRefId', sql.VarChar, payload.whts_ref_id)
+        .input('from', sql.VarChar, payload.from)
+        .input('wabaNumber', sql.VarChar, payload.wabaNumber)
+        .input('timestamp', sql.VarChar, payload.timestamp)
+        .input('contextId', sql.VarChar, payload.context.id)
+        .query(anotherQuery);
+
+      res.status(301).json({ status: 200, message: 'Payload inserted successfully' });
+    }
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'An error occurred while inserting the payload' });
