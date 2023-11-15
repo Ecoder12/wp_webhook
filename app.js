@@ -21,6 +21,7 @@ app.use(express.json());
 app.post('/api/wp/webhookdata', async (req, res) => {
   const payload = req.body;
   console.log(payload);
+  console.log('>>>>>>>>>>>>',payload.text.body)
 
   try {
     await sql.connect(config);
@@ -106,7 +107,7 @@ app.post('/api/wp/webhookdata', async (req, res) => {
         .input('receiver', sql.VarChar, payload.receiver)
         .input('displayName', sql.VarChar, payload.display_name)
         .input('type', sql.VarChar, payload.type)
-        .input('textBody', sql.VarChar, payload.text.body)
+        .input('textBody', sql.NVarChar, payload.text.body)
         .input('dt', sql.VarChar, payload.dt)
         .input('date', sql.VarChar, payload.date)
         .input('created', sql.VarChar, payload.created)
@@ -161,7 +162,7 @@ app.post('/api/wp/webhookdata', async (req, res) => {
         .input('receiver', sql.VarChar, payload.receiver)
         .input('displayName', sql.VarChar, payload.display_name)
         .input('type', sql.VarChar, payload.type)
-        .input('textBody', sql.VarChar, payload.text.body)
+        .input('textBody', sql.NVarChar, payload.text.body)
         .input('dt', sql.VarChar, payload.dt)
         .input('date', sql.VarChar, payload.date)
         .input('created', sql.VarChar, payload.created)
