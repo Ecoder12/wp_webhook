@@ -21,7 +21,7 @@ app.use(express.json());
 app.post('/api/wp/webhookdata', async (req, res) => {
   const payload = req.body;
   console.log(payload);
-  console.log('>>>>>>>>>>>>',payload.text.body)
+  console.log('>>>>>>>>>>>>', payload.text.body)
 
   try {
     await sql.connect(config);
@@ -181,6 +181,91 @@ app.post('/api/wp/webhookdata', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while inserting the payload' });
   }
 });
+
+//[WP_Response_2]
+app.post('/api/wp/webhookdata_2', async (req, res) => {
+  const payload = req.body;
+  console.log(payload);
+
+  try {
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    const checkQuery = 'SELECT COUNT(*) AS count FROM Rajasthan_AC_Data WHERE MOBILE_NO = @mobile_t';
+    const checkResult = await request.input('mobile_t', sql.VarChar, payload.mobile).query(checkQuery);
+    const recordExists = checkResult.recordset[0].count > 0;
+
+    if (recordExists) {
+      const query = `
+        INSERT INTO [dbo].[WP_Response_2]
+        ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type], [timestamp], [State], [AC_NO], [PART_NO], [SECTION_NO], [SLNOINPART], [C_HOUSE_NO], [FM_NAME_EN], [LASTNAME_EN], [RLN_TYPE], [RLN_FM_NM_EN], [RLN_L_NM_EN], [EPIC_NO],[GENDER], [AGE], [DOB])
+        SELECT
+          @waNumber,
+          @mobile,
+          @replyId,
+          @messageId,
+          @text,
+          @name,
+          @type,
+          @timestamp,
+          COALESCE(t.[State], ''),
+          COALESCE(t.[AC_NO], ''),
+          COALESCE(t.[PART_NO], ''),
+          COALESCE(t.[SECTION_NO], ''),
+          COALESCE(t.[SLNOINPART], ''),
+          COALESCE(t.[C_HOUSE_NO], ''),
+          COALESCE(t.[FM_NAME_EN], ''),
+          COALESCE(t.[LASTNAME_EN], ''),
+          COALESCE(t.[RLN_TYPE], ''),
+          COALESCE(t.[RLN_FM_NM_EN], ''),
+          COALESCE(t.[RLN_L_NM_EN], ''),
+          COALESCE(t.[EPIC_NO], ''),
+          COALESCE(t.[GENDER], ''),
+          COALESCE(t.[AGE], ''),
+          COALESCE(t.[DOB], '')
+        FROM Rajasthan_AC_Data t
+        WHERE MOBILE_NO = @mobile`;
+
+      const result = await request
+        .input('waNumber', sql.VarChar, payload.waNumber)
+        .input('mobile', sql.VarChar, payload.mobile)
+        .input('replyId', sql.VarChar, payload.replyId)
+        .input('messageId', sql.VarChar, payload.messageId)
+        .input('text', sql.NVarChar, payload.text)
+        .input('name', sql.NVarChar, payload.name)
+        .input('type', sql.VarChar, payload.type)
+        .input('timestamp', sql.VarChar, new Date().toISOString())
+        .query(query);
+
+      res.status(200).json({ status: 200, message: 'Payload inserted successfully' });
+    } else {
+      const anotherQuery = `
+        INSERT INTO [dbo].[WP_Response_2]
+        ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type], [timestamp])
+        VALUES
+        (@waNumber, @mobile, @replyId, @messageId, @text, @name, @type, @timestamp)`;
+
+      const anotherResult = await request
+        .input('waNumber', sql.VarChar, payload.waNumber)
+        .input('mobile', sql.VarChar, payload.mobile)
+        .input('replyId', sql.VarChar, payload.replyId)
+        .input('messageId', sql.VarChar, payload.messageId)
+        .input('text', sql.NVarChar, payload.text)
+        .input('name', sql.NVarChar, payload.name)
+        .input('type', sql.VarChar, payload.type)
+        .input('timestamp', sql.VarChar, new Date().toISOString())
+        .query(anotherQuery);
+
+      res.status(301).json({ status: 200, message: 'Payload inserted successfully' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'An error occurred while inserting the payload' });
+  }
+});
+
+
+
 
 app.listen(3500, () => {
   console.log('Server is running on port 3500');
