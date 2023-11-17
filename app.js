@@ -198,7 +198,7 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
     if (recordExists) {
       const query = `
         INSERT INTO [dbo].[WP_Response_2]
-        ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type], [timestamp], [State], [AC_NO], [PART_NO], [SECTION_NO], [SLNOINPART], [C_HOUSE_NO], [FM_NAME_EN], [LASTNAME_EN], [RLN_TYPE], [RLN_FM_NM_EN], [RLN_L_NM_EN], [EPIC_NO],[GENDER], [AGE], [DOB])
+        ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type],[button_reply] [timestamp], [State], [AC_NO], [PART_NO], [SECTION_NO], [SLNOINPART], [C_HOUSE_NO], [FM_NAME_EN], [LASTNAME_EN], [RLN_TYPE], [RLN_FM_NM_EN], [RLN_L_NM_EN], [EPIC_NO],[GENDER], [AGE], [DOB])
         SELECT
           @waNumber,
           @mobile,
@@ -207,6 +207,7 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
           @text,
           @name,
           @type,
+          @button_reply
           @timestamp,
           COALESCE(t.[State], ''),
           COALESCE(t.[AC_NO], ''),
@@ -234,6 +235,7 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
         .input('text', sql.NVarChar, payload.text)
         .input('name', sql.NVarChar, payload.name)
         .input('type', sql.VarChar, payload.type)
+        .input('button_reply', sql.NVarChar, payload.button.text)
         .input('timestamp', sql.VarChar, new Date().toISOString())
         .query(query);
 
@@ -241,9 +243,9 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
     } else {
       const anotherQuery = `
         INSERT INTO [dbo].[WP_Response_2]
-        ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type], [timestamp])
+        ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type],[button_reply], [timestamp])
         VALUES
-        (@waNumber, @mobile, @replyId, @messageId, @text, @name, @type, @timestamp)`;
+        (@waNumber, @mobile, @replyId, @messageId, @text, @name, @type, @button_reply, @timestamp)`;
 
       const anotherResult = await request
         .input('waNumber', sql.VarChar, payload.waNumber)
@@ -253,6 +255,7 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
         .input('text', sql.NVarChar, payload.text)
         .input('name', sql.NVarChar, payload.name)
         .input('type', sql.VarChar, payload.type)
+        .input('button_reply', sql.NVarChar, payload.button.text)
         .input('timestamp', sql.VarChar, new Date().toISOString())
         .query(anotherQuery);
 
