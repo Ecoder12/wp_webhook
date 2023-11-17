@@ -246,7 +246,11 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
         ([waNumber], [mobile], [replyId], [messageId], [text], [name], [type],[button_reply], [timestamp])
         VALUES
         (@waNumber, @mobile, @replyId, @messageId, @text, @name, @type, @button_reply, @timestamp)`;
-
+        // const jsonString = payload.button;
+        // const cleanedString = jsonString.replace(/\\"/g, '"').replace(/"{/g, '{').replace(/}"/g, '}');
+        // const jsonObject = JSON.parse(cleanedString);
+        
+        // console.log(jsonObject);
       const anotherResult = await request
         .input('waNumber', sql.VarChar, payload.waNumber)
         .input('mobile', sql.VarChar, payload.mobile)
@@ -255,7 +259,7 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
         .input('text', sql.NVarChar, payload.text)
         .input('name', sql.NVarChar, payload.name)
         .input('type', sql.VarChar, payload.type)
-        .input('button_reply', sql.NVarChar, payload.button.text)
+        .input('button_reply', sql.NVarChar, payload.button?.text || null)
         .input('timestamp', sql.VarChar, new Date().toISOString())
         .query(anotherQuery);
 
