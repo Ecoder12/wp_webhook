@@ -354,6 +354,39 @@ app.get('/response-gupshup/:min/:max', async (req, res) => {
 });
 
 
+app.get('/responsebyWaNumber/:waNumber/:min/:max', async (req, res) => {
+  try {
+    const min = req.params.min;
+    const max = req.params.max;
+    const waNumber = req.params.waNumber;
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    const query = `
+    SELECT * 
+    FROM (
+        SELECT *, 
+            ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rowNum 
+        FROM WP_Response_2  
+    ) AS tbl
+    WHERE waNumber = ${waNumber} AND  rowNum BETWEEN ${min} AND ${max};`;
+
+    const result = await request.query(query);
+
+    const query_count = `
+    SELECT count(*) as totalRow FROM WP_Response_2 `
+
+    const result_count = await request.query(query_count);
+    // console.log('Data Fetched Successfully', result);
+
+    res.json({ data: result.recordset , datacount: result_count.recordsets[0] });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    sql.close();
+  }
+});
+
 
 app.listen(3500, () => {
   console.log('Server is running on port 3500');
