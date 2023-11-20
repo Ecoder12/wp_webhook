@@ -388,6 +388,71 @@ app.get('/responsebyWaNumber/:waNumber/:min/:max', async (req, res) => {
 });
 
 
+app.get('/getBydate/:start_date/:end_date', async (req, res) => {
+  try {
+    const start_date = req.params.start_date;
+    const end_date = req.params.end_date;
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    const query = `
+    SELECT *
+FROM WP_Response_2
+WHERE CONVERT(DATE, timestamp) between '${start_date}' AND '${end_date}'
+ORDER BY timestamp DESC;
+`;
+
+    const result = await request.query(query);
+
+    const query_count = `
+    SELECT count(*) as total_count
+FROM WP_Response_2
+WHERE CONVERT(DATE, timestamp) between '${start_date}' AND '${end_date}';`
+
+    const result_count = await request.query(query_count);
+    // console.log('Data Fetched Successfully', result);
+
+    res.json({ data: result.recordset , datacount: result_count.recordsets[0] });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    sql.close();
+  }
+});
+
+
+app.get('/getresponseBydate/:start_date/:end_date', async (req, res) => {
+  try {
+    start_date = req.params.start_date;
+    end_date = req.params.end_date;
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    const query = `
+    SELECT *
+FROM WP_Response
+WHERE CONVERT(DATE, created) between '${start_date}' AND '${end_date}'
+ORDER BY timestamp DESC;
+`;
+
+    const result = await request.query(query);
+
+    const query_count = `
+    SELECT count(*) as total_count
+FROM WP_Response
+WHERE CONVERT(DATE, created) between '${start_date}' AND '${end_date}';`
+
+    const result_count = await request.query(query_count);
+    // console.log('Data Fetched Successfully', result);
+
+    res.json({ data: result.recordset , datacount: result_count.recordsets[0] });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    sql.close();
+  }
+});
+
 app.listen(3500, () => {
   console.log('Server is running on port 3500');
 });
