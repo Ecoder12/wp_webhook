@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Whatsapp Data Table</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f5ff;
+        /* Light blue background */
+      }
+
+      a {
+        color: white;
+        text-decoration: none;
+      }
+
+      button {
+        background-color: #3498db;
+        color: white;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        background-color: white;
+        /* White table background */
+      }
+
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #3498db;
+        color: white;
+      }
+
+      tr:nth-child(even) {
+        background-color: #ebf0ff;
+        /* Light blue alternate row background */
+      }
+
+      @media screen and (max-width: 600px) {
+        table {
+          border: 0;
+        }
+
+        tr {
+          margin-bottom: 10px;
+          display: block;
+          border: 1px solid #ccc;
+        }
+
+        td {
+          border: none;
+          border-bottom: 1px solid #ccc;
+          position: relative;
+          padding-left: 50%;
+          background-color: #ebf0ff;
+          /* Light blue alternate row background */
+        }
+
+        td:before {
+          position: absolute;
+          left: 6px;
+          content: attr(data-label);
+          background-color: #a1c8ff;
+          /* Light blue header background */
+          color: white;
+        }
+      }
+      h1 {
+        background-color: #3498db;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+      }
+      #pagination-container {
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      #prev-button,
+      #next-button,
+      #page-numbers button {
+        background-color: #3498db;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        cursor: pointer;
+        margin: 2px;
+        border-radius: 3px;
+      }
+
+      #prev-button,
+      #next-button {
+        background-color: #333;
+      }
+
+      #prev-button:hover,
+      #next-button:hover {
+        background-color: #555;
+      }
+
+      #page-numbers button:hover {
+        background-color: #555;
+      }
+      button {
+        margin-top: 20px;
+      }
+      .logout {
+        background-color: red !important;
+      }
+      .export-csv {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+        position: absolute;
+        right: 29px;
+        z-index: 1;
+      }
+
+      .export-csv:hover {
+        background-color: #45a049;
+      }
+      .all-export-csv {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        cursor: pointer;
+        position: absolute;
+        right: 136px;
+        z-index: 1;
+      }
+
+      .all-export-csv:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Response</h1>
+    <div class="table-container">
+      <div class="date-filter">
+        <label for="start-date">Start Date:</label>
+        <input type="date" id="start-date" />
+        <label for="end-date">End Date:</label>
+        <input type="date" id="end-date" />
+        <button id="filter-button">Apply Filter</button>
+        <button id="filter-button">
+          <a href="https://surveycenter.naxtre.com/response">Response</a>
+        </button>
+        <button id="filter-button">
+          <a href="https://surveycenter.naxtre.com/constituency_allocate"
+            >Allocate Constituency</a
+          >
+        </button>
+        <button id="filter-button" class="logout">
+          <a href="https://surveycenter.naxtre.com/login">Logout</a>
+        </button>
+        <label for="rows-per-page">Rows per page:</label>
+        <select id="rows-per-page">
+          <option value="10">10</option>
+          <option value="50">50</option>
+          <option value="all">All</option>
+        </select>
+        <button id="all-export-csv-button" class="all-export-csv">
+          All Data Export
+        </button>
+        <button id="export-csv-button" class="export-csv">Export CSV</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Serial No</th>
+            <!-- Add a new column for Serial No -->
+            <th data-label="Timestamp">Sender</th>
+            <th data-label="Mobile Number">Receiver</th>
+            <th data-label="Gender">Reply</th>
+            <th data-label="Urban or Rural">type</th>
+            <th data-label="Upcoming Election Party">
+              Date
+            </th>
+            <!-- <th data-label="Party 2018">Party 2018</th>
+            <th data-label="Satisfaction with CM">Satisfaction with CM</th>
+            <th data-label="Satisfaction with MLA">Satisfaction with MLA</th>
+            <th data-label="Occupation">Occupation</th>
+            <th data-label="Caste">Caste</th>
+            <th data-label="Agent ID">Agent ID</th>
+            <th data-label="Remarks (if any)">Remarks (if any)</th>
+            <th data-label="Action">Action</th> -->
+            <!-- Add a new column for the Delete button -->
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach(function(entry, index) { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <!-- Serial number starts from 1 -->
+            <td data-label="ID"><%= entry.sender_id %></td>
+            <td data-label="Timestamp"><%= entry.receiver %></td>
+            <td data-label="Mobile Number"><%= entry.text_body %></td>
+            <td data-label="Gender"><%= entry.Gender %></td>
+            <td data-label="Urban or Rural"><%= entry.type %></td>
+            <td data-label="Upcoming Election Party">
+              <%= entry.timestamp %>
+            </td>
+            <!-- <td data-label="Party 2018"><%= entry.Party_2018 %></td>
+            <td data-label="Satisfaction with CM">
+              <%= entry.Satisfaction_with_CM %>
+            </td>
+            <td data-label="Satisfaction with MLA">
+              <%= entry.Satisfaction_with_MLA %>
+            </td>
+            <td data-label="Occupation"><%= entry.Occupation %></td>
+            <td data-label="Caste"><%= entry.Caste %></td>
+            <td data-label="Agent ID"><%= entry.Agent_ID %></td>
+            <td data-label="Remarks (if any)"><%= entry.Remarks_if_any %></td> -->
+            <!-- <td data-label="Action"> -->
+              <form action="/deleteSurveyData" method="POST">
+                <input type="hidden" name="id" value="<%= entry.Id %>" />
+                <button type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+      <div id="pagination-container">
+        <button id="prev-button"><<</button>
+        <span id="page-numbers"></span>
+        <button id="next-button">>></button>
+      </div>
+
+      <script>
+        const table = document.querySelector("table");
+        const tableRows = table.querySelectorAll("tr");
+        let rowsPerPage = 10; // Default to 10 rows per page
+        let currentPage = 1;
+
+        function displayTable(page) {
+          const start = (page - 1) * rowsPerPage;
+          const end = start + rowsPerPage;
+
+          // Create HTML for the table rows to display
+          let tableHtml = tableRows[0].outerHTML; // Include the table header
+          for (let i = start + 1; i < end; i++) {
+            if (tableRows[i]) {
+              tableHtml += tableRows[i].outerHTML;
+            }
+          }
+          table.innerHTML = tableHtml;
+        }
+
+        function navigateToPage(page) {
+          if (page < 1) page = 1;
+          if (page > Math.ceil(tableRows.length / rowsPerPage)) {
+            page = Math.ceil(tableRows.length / rowsPerPage);
+          }
+          currentPage = page;
+          displayTable(currentPage);
+        }
+
+        displayTable(currentPage);
+
+        const paginationContainer = document.getElementById(
+          "pagination-container"
+        );
+        const totalPages = Math.ceil(tableRows.length / rowsPerPage);
+        const pageNumbers = document.getElementById("page-numbers");
+        const prevButton = document.getElementById("prev-button");
+        const nextButton = document.getElementById("next-button");
+        const rowsPerPageSelect = document.getElementById("rows-per-page");
+
+        function updatePageNumbers() {
+          pageNumbers.innerHTML = "";
+          for (let i = 1; i <= totalPages; i++) {
+            const button = document.createElement("button");
+            button.innerText = i;
+            button.addEventListener("click", () => navigateToPage(i));
+            pageNumbers.appendChild(button);
+          }
+        }
+
+        updatePageNumbers();
+
+        prevButton.addEventListener("click", () => {
+          navigateToPage(currentPage - 1);
+        });
+
+        nextButton.addEventListener("click", () => {
+          navigateToPage(currentPage + 1);
+        });
+
+        rowsPerPageSelect.addEventListener("change", (event) => {
+          const selectedValue = event.target.value;
+          if (selectedValue === "all") {
+            rowsPerPage = tableRows.length - 1; // Display all rows
+          } else {
+            rowsPerPage = parseInt(selectedValue, 10);
+          }
+          currentPage = 1; // Reset to the first page when changing rows per page
+          displayTable(currentPage);
+          updatePageNumbers();
+        });
+
+        function applyFilter() {
+          const startDate = new Date(
+            document.getElementById("start-date").value
+          );
+          const endDate = new Date(document.getElementById("end-date").value);
+
+          if (!startDate || !endDate || startDate > endDate) {
+            alert("Invalid date range. Please select valid dates.");
+            return;
+          }
+
+          tableRows.forEach((row) => {
+            const timestampCell = row.querySelector("[data-label='Timestamp']");
+            if (timestampCell) {
+              const timestamp = new Date(timestampCell.textContent);
+              if (
+                timestamp >= startDate &&
+                timestamp <= new Date(endDate.getTime() + 24 * 60 * 60 * 1000)
+              ) {
+                row.style.display = "table-row";
+              } else {
+                row.style.display = "none";
+              }
+            }
+          });
+        }
+
+        function extractVisibleTableData() {
+          const table = document.querySelector("table");
+          const rows = table.querySelectorAll("tr");
+          const visibleData = [];
+          rows.forEach((row) => {
+            if (row.style.display !== "none") {
+              const rowData = [];
+              const cells = row.querySelectorAll("td");
+              cells.forEach((cell) => {
+                rowData.push(cell.textContent.trim());
+              });
+              visibleData.push(rowData.join(","));
+            }
+          });
+          return visibleData.join("\n");
+        }
+
+        function exportVisibleTableToCSV(filename) {
+          const table = document.querySelector("table");
+          const headers = Array.from(table.querySelectorAll("th")).map((th) =>
+            th.textContent.trim()
+          );
+          const visibleData = [headers];
+
+          const rows = table.querySelectorAll("tr");
+          rows.forEach((row) => {
+            if (row.style.display !== "none") {
+              const rowData = [];
+              const cells = row.querySelectorAll("td");
+              cells.forEach((cell) => {
+                rowData.push(cell.textContent.trim());
+              });
+              visibleData.push(rowData);
+            }
+          });
+
+          const csvContent = visibleData.map((row) => row.join(",")).join("\n");
+
+          // Remove "data:text/csv;charset=utf-8" from the csv URL
+          const csv = csvContent;
+          const csvBlob = new Blob([csv], { type: "text/csv" });
+
+          const csvUrl = URL.createObjectURL(csvBlob);
+          const a = document.createElement("a");
+          a.href = csvUrl;
+          a.download = filename + ".csv";
+          a.style.display = "none";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(csvUrl);
+        }
+
+        document
+          .getElementById("filter-button")
+          .addEventListener("click", applyFilter);
+
+        document
+          .getElementById("export-csv-button")
+          .addEventListener("click", function () {
+            exportVisibleTableToCSV("table_data");
+          });
+      </script>
+      <script>
+        document
+          .getElementById("filter-button")
+          .addEventListener("click", applyFilter);
+
+        function applyFilter() {
+          const startDate = new Date(
+            document.getElementById("start-date").value
+          );
+          const endDate = new Date(document.getElementById("end-date").value);
+
+          if (!startDate || !endDate || startDate > endDate) {
+            alert("Invalid date range. Please select valid dates.");
+            return;
+          }
+
+          const table = document.querySelector("table");
+          const tableRows = table.querySelectorAll("tr");
+
+          tableRows.forEach((row) => {
+            const timestampCell = row.querySelector("[data-label='Timestamp']");
+            if (timestampCell) {
+              const timestamp = new Date(timestampCell.textContent);
+              if (
+                timestamp >= startDate &&
+                timestamp <= new Date(endDate.getTime() + 24 * 60 * 60 * 1000)
+              ) {
+                row.style.display = "table-row";
+              } else {
+                row.style.display = "none";
+              }
+            }
+          });
+        }
+      </script>
+      <script>
+        function exportAllDataToCSV() {
+          fetch("https://surveycenter.naxtre.com/SurveyData") // Replace with your server-side endpoint
+            .then((response) => response.json())
+            .then((data) => {
+              const csvContent = prepareCSVContent(data);
+              exportToCSVFile(csvContent, "table_data");
+            })
+            .catch((error) => {
+              console.error("Error fetching data: ", error);
+            });
+        }
+
+        function prepareCSVContent(data) {
+          const headers = [
+            "ID",
+            "Timestamp",
+            "Mobile Number",
+            "Gender",
+            "Urban_or_Rural",
+            "Upcoming_Election_Party",
+            "Party_2018",
+            "Satisfaction_with_CM",
+            "Satisfaction_with_MLA",
+            "Occupation",
+            "Caste",
+            "Agent_ID",
+            "Remarks_if_any",
+          ];
+          const rows = data.map((entry) => {
+            return [
+              entry.data_text,
+              entry.Id,
+              entry.Timestamp,
+              entry.Mobile_Number,
+              entry.Gender,
+              entry.Urban_or_Rural,
+              entry.Upcoming_Election_Party,
+              entry.Party_2018,
+              entry.Satisfaction_with_CM,
+              entry.Satisfaction_with_MLA,
+              entry.Occupation,
+              entry.Caste,
+              entry.Agent_ID,
+              entry.Remarks_if_any,
+            ];
+          });
+          return [headers, ...rows].map((row) => row.join(",")).join("\n");
+        }
+
+        function exportToCSVFile(csvContent, filename) {
+          const csv = "data:text/csv;charset=utf-8," + csvContent;
+          const csvBlob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(csvBlob);
+          a.download = filename + ".csv";
+          a.style.display = "none";
+
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          URL.revokeObjectURL(a.href);
+        }
+
+        document
+          .getElementById("all-export-csv-button")
+          .addEventListener("click", function () {
+            exportAllDataToCSV();
+          });
+      </script>
+    </div>
+  </body>
+</html>

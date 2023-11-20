@@ -1,5 +1,7 @@
 const express = require('express');
 const sql = require('mssql');
+const ejs = require('ejs');
+
 
 const app = express();
 
@@ -17,7 +19,13 @@ const config = {
 };
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+app.use(express.static('public'));
 
+app.get('/', (req, res) => {
+  res.render('form');
+});
 app.post('/api/wp/webhookdata', async (req, res) => {
   const payload = req.body;
   console.log(payload);
@@ -280,6 +288,70 @@ app.post('/api/wp/webhookdata_2', async (req, res) => {
   }
 });
 
+app.get('/response/:min/:max', async (req, res) => {
+  try {
+    const min = req.params.min;
+    const max = req.params.max;
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    const query = `
+    SELECT * 
+    FROM (
+        SELECT *, 
+            ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rowNum 
+        FROM WP_Response 
+    ) AS tbl
+    WHERE rowNum BETWEEN ${min} AND ${max};`;
+
+    const result = await request.query(query);
+
+    const query_count = `
+    SELECT count(*) as totalRow FROM WP_Response `
+
+    const result_count = await request.query(query_count);
+    // console.log('Data Fetched Successfully', result);
+
+    res.json({ data: result.recordset , datacount: result_count.recordsets[0] });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    sql.close();
+  }
+});
+
+
+app.get('/response-gupshup/:min/:max', async (req, res) => {
+  try {
+    const min = req.params.min;
+    const max = req.params.max;
+    await sql.connect(config);
+    const request = new sql.Request();
+
+    const query = `
+    SELECT * 
+    FROM (
+        SELECT *, 
+            ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rowNum 
+        FROM WP_Response_2 
+    ) AS tbl
+    WHERE rowNum BETWEEN ${min} AND ${max};`;
+
+    const result = await request.query(query);
+
+    const query_count = `
+    SELECT count(*) as totalRow FROM WP_Response_2 `
+
+    const result_count = await request.query(query_count);
+    // console.log('Data Fetched Successfully', result);
+
+    res.json({ data: result.recordset , datacount: result_count.recordsets[0] });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    sql.close();
+  }
+});
 
 
 
