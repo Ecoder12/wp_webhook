@@ -367,9 +367,9 @@ app.get('/responsebyWaNumber/:waNumber/:min/:max', async (req, res) => {
     FROM (
         SELECT *, 
             ROW_NUMBER() OVER (ORDER BY timestamp DESC) AS rowNum 
-        FROM WP_Response_2  
+        FROM WP_Response_2 where waNumber = ${waNumber}
     ) AS tbl
-    WHERE waNumber = ${waNumber} AND  rowNum BETWEEN ${min} AND ${max};`;
+    WHERE  rowNum BETWEEN ${min} AND ${max};`;
 
     const result = await request.query(query);
 
