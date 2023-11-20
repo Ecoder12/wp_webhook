@@ -374,7 +374,7 @@ app.get('/responsebyWaNumber/:waNumber/:min/:max', async (req, res) => {
     const result = await request.query(query);
 
     const query_count = `
-    SELECT count(*) as totalRow FROM WP_Response_2 `
+    SELECT count(*) as totalRow FROM WP_Response_2 where waNumber = ${waNumber} `
 
     const result_count = await request.query(query_count);
     // console.log('Data Fetched Successfully', result);
